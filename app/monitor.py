@@ -35,17 +35,15 @@ class StockMonitor:
         return list(self.config.get("watchlist", []))
 
     def quote(self, symbol: str, asset_type: str) -> Snapshot:
-        tables = self.provider.load_spot_tables()
-        return self.provider.snapshot_from_tables(symbol, asset_type, tables)
+        return self.provider.snapshot(symbol, asset_type)
 
     def check(self) -> dict[str, Any]:
         rules = self.config["rules"]
         index_cfg = self.config["index"]
-        tables = self.provider.load_spot_tables()
 
-        index_snapshot = self.provider.snapshot_from_tables(
-            index_cfg["symbol"], "index", tables
-        )
+        # 实时快照改为逐标的查询，并带东方财富 -> 腾讯备用源。
+        # 这样云主机遇到东方财富全市场分页接口断连时，不会整次 502。
+        index_snapshot = self.provider.snapshot(index_cfg["symbol"], "index")
         snapshots: list[Snapshot] = [index_snapshot]
         alerts: list[Alert] = []
         errors: list[dict[str, str]] = []
@@ -59,14 +57,14 @@ class StockMonitor:
                     float(index_cfg["threshold"]),
                 )
             )
-        except Exception as exc:  # 外部数据源失败不应让整个监控中断
-            errors.append({"symbol": index_snapshot.symbol, "error": str(exc)})
+        except Exception as exc:  # 分钟行情失败只记录，不中断快照
+            errors.append({"symbol": index_snapshot.symbol, "stage": "minute", "error": str(exc)})
 
         for item in self.watchlist:
             symbol = str(item["symbol"])
             asset_type = str(item["asset_type"])
             try:
-                snapshot = self.provider.snapshot_from_tables(symbol, asset_type, tables)
+                snapshot = self.provider.snapshot(symbol, asset_type)
                 snapshots.append(snapshot)
 
                 alerts.extend(
@@ -104,9 +102,9 @@ class StockMonitor:
                         )
                     )
                 except Exception as exc:
-                    errors.append({"symbol": symbol, "error": str(exc)})
+                    errors.append({"symbol": symbol, "stage": "minute", "error": str(exc)})
             except Exception as exc:
-                errors.append({"symbol": symbol, "error": str(exc)})
+                errors.append({"symbol": symbol, "stage": "spot", "error": str(exc)})
 
         return {
             "index": index_snapshot.to_dict(),
