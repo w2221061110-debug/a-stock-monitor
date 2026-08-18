@@ -20,6 +20,7 @@ class Snapshot:
     amount: float | None = None
     volume_ratio: float | None = None
     updated_at: str | None = None
+    source: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
