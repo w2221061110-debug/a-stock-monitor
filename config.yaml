@@ -1,0 +1,39 @@
+market:
+  timezone: Asia/Shanghai
+  poll_interval_seconds: 30
+
+index:
+  symbol: "000001"
+  name: 上证指数
+  threshold: 4000.0
+
+watchlist:
+  - symbol: "512070"
+    name: 证券保险ETF
+    asset_type: etf
+  - symbol: "159326"
+    name: 电网设备ETF
+    asset_type: etf
+  - symbol: "513120"
+    name: 港股创新药ETF
+    asset_type: etf
+  - symbol: "562500"
+    name: 机器人ETF
+    asset_type: etf
+  - symbol: "600737"
+    name: 中粮糖业
+    asset_type: stock
+    limit_pct: 10.0
+  - symbol: "601118"
+    name: 海南橡胶
+    asset_type: stock
+    limit_pct: 10.0
+
+rules:
+  quick_move_window_minutes: 5
+  quick_move_up_pct: 1.5
+  quick_move_down_pct: -1.5
+  volume_lookback_minutes: 20
+  volume_ratio_alert: 2.0
+  etf_relative_strength_gap_pct: 1.0
+  limit_open_tolerance_price: 0.01
